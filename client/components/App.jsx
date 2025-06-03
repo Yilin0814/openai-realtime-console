@@ -6,12 +6,30 @@ import ToolPanel from "./ToolPanel";
 
 export default function App() {
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [sessionid, setSessionid] = useState(false);
+  const [question, setQuestion] = useState("");
   const [events, setEvents] = useState([]);
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
 
   async function startSession() {
+    // Generate a unique session ID for this session
+    const apiResponse = await fetch("http://localhost:8000/new-chat");
+    if (!apiResponse.ok) {
+      console.error("Failed to fetch session ID from backend");
+      return;
+    }
+    const { session_id, question } = await apiResponse.json();
+    if (!session_id || !question) {
+      console.error("Invalid session ID response");
+      return;
+    }
+    setSessionid(session_id);
+    setQuestion(question);
+
+
+
     // Get a session token for OpenAI Realtime API
     const tokenResponse = await fetch("/token");
     const data = await tokenResponse.json();
@@ -139,6 +157,7 @@ export default function App() {
       dataChannel.addEventListener("open", () => {
         setIsSessionActive(true);
         setEvents([]);
+
       });
     }
   }, [dataChannel]);
@@ -167,7 +186,9 @@ export default function App() {
             />
           </section>
         </section>
-        <section className="absolute top-0 w-[380px] right-0 bottom-0 p-4 pt-0 overflow-y-auto">
+        <section className="absolute top-0 w-[380px] right-0 bottom-0 p-4 pt-0 overflow-y-auto bg-gray-50">
+          <p>sessionid:{sessionid}</p>
+          <p>question: {question}</p>
           <ToolPanel
             sendClientEvent={sendClientEvent}
             sendTextMessage={sendTextMessage}

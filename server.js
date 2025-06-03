@@ -28,6 +28,8 @@ app.get("/token", async (req, res) => {
         body: JSON.stringify({
           model: "gpt-4o-realtime-preview-2024-12-17",
           voice: "verse",
+          instructions: "You are a nurse assistant. Answer questions in a friendly and helpful manner. first question is 'Onko sinulla kipua vatsan alueella?'",
+
         }),
       },
     );
