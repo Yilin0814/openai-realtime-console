@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import logo from "/assets/openai-logomark.svg";
 import EventLog from "./EventLog";
 import SessionControls from "./SessionControls";
-import ToolPanel from "./ToolPanel";
+import HandelUserAnswer from "./HandleUserAnswer";
 
 export default function App() {
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -189,7 +189,8 @@ export default function App() {
         <section className="absolute top-0 w-[380px] right-0 bottom-0 p-4 pt-0 overflow-y-auto bg-gray-50">
           <p>sessionid:{sessionid}</p>
           <p>question: {question}</p>
-          <ToolPanel
+          <HandelUserAnswer
+            sessionid={sessionid}
             sendClientEvent={sendClientEvent}
             sendTextMessage={sendTextMessage}
             events={events}

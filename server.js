@@ -28,7 +28,7 @@ app.get("/token", async (req, res) => {
         body: JSON.stringify({
           model: "gpt-4o-realtime-preview-2024-12-17",
           voice: "verse",
-          instructions: "You are a nurse assistant. Answer questions in a friendly and helpful manner. first question is 'Onko sinulla kipua vatsan alueella?'",
+          instructions: "You are a nurse assistant. Answer questions in a friendly and helpful manner. first question is 'Onko sinulla kipua vatsan alueella?', after user answer, use the tool 'handle_user_answer' to get follow-up questions based on the user's answer.",
 
         }),
       },
