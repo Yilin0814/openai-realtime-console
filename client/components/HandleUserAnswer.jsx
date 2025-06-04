@@ -35,45 +35,47 @@ const sessionUpdate = {
 export default function HandelUserAnswer({ sessionid,isSessionActive, sendClientEvent, events }) {
     const [functionAdded, setFunctionAdded] = useState(false); 
     const [lastOutput, setLastOutput] = useState(null);   
+    const [followupQuestion, setFollowupQuestion] = useState("");
+
     useEffect(() => {
         if (!events || events.length === 0) return;
-        console.log("Received events:", events);
+        // console.log("Received events:", events);
         const latestEvent = events[0];
-        console.log("->  Latest event:", latestEvent);
+        // console.log("->  Latest event:", latestEvent);
         if (!functionAdded && latestEvent.type === "session.created") {
         sendClientEvent(sessionUpdate);
         setFunctionAdded(true);
         }
 
-        if (latestEvent.type === "response.done" ) {
+        if (latestEvent.type === "response.function_call_arguments.done" ) {
+            console.log("-> 🌟🌈 Latest response done event:", latestEvent);
             latestEvent.response.output.forEach(async (output) => {
-                if (
-                output.type === "function_call" &&
-                output.name === "handle_user_answer"
-                ) {
-                console.log("❕芜湖🈚️Function call output:", output);
-                const { user_answer } = JSON.parse(output.arguments);
-                setLastOutput(output); 
-                console.log("🌹 User answer:", user_answer," sessionid:",sessionid);
-                const session_id=sessionid
-                const res = await fetch("http://localhost:8000/handle-answer", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ session_id, user_answer }),
-                });
-                console.log("🦷 Response from backend:", res);
-                const data = await res.json();
-                console.log("Follow-up question data:", data);
-                const followupQuestion = data.question;
-                console.log("Follow-up question:", followupQuestion);
-                setTimeout(() => {
-                    sendClientEvent({
-                        type: "response.create",
-                        response: {
-                        instructions: "Ask use this question," + followupQuestion+ "after user answer, use the tool 'handle_user_answer' to get follow-up questions based on the user's answer.",
-                        },
+                if (output.type === "function_call" && output.name === "handle_user_answer") {
+                    console.log("❕芜湖🈚️Function call output:", output);
+                    const { user_answer } = JSON.parse(output.arguments);
+                    setLastOutput(output); 
+                    console.log("🌹 User answer:", user_answer," sessionid:",sessionid);
+                    const session_id=sessionid
+                    const res = await fetch("http://localhost:8000/handle-answer", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ session_id, user_answer }),
                     });
-                }, 500);
+                    console.log("🦷 Response from backend:", res);
+                    const data = await res.json();
+                    console.log("Follow-up question data:", data);
+                    const followupQuestion = data.question;
+                    console.log("Follow-up question:", followupQuestion);
+                    setFollowupQuestion(followupQuestion);
+
+                    setTimeout(() => {
+                        sendClientEvent({
+                            type: "response.create",
+                            response: {
+                            instructions: "Ask use this question," + followupQuestion+ "after user answer, use the tool 'handle_user_answer' to get follow-up questions based on the user's answer.",
+                            },
+                        });
+                    }, 500);
                 }
             });
         }
@@ -92,9 +94,16 @@ export default function HandelUserAnswer({ sessionid,isSessionActive, sendClient
             <h2 className="text-lg font-bold">Follow-up Question Tool</h2>
             {isSessionActive ? (
             lastOutput ? (
-                <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
-                Last answer: {JSON.parse(lastOutput.arguments).user_answer}
-                </pre>
+                <>
+                    <pre className="text-xs bg-gray-100 rounded-md p-2 overflow-x-auto">
+                        Last answer: {JSON.parse(lastOutput.arguments).user_answer}
+                    </pre>
+                    {followupQuestion && (
+                    <p className="text-sm text-blue-700 mt-2">
+                        🧠 next question：{followupQuestion}
+                    </p>
+                    )}
+                </>
             ) : (
                 <p>Waiting for user answer...</p>
             )
